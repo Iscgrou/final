@@ -11,7 +11,7 @@ export const users = pgTable("users", {
   createdAt: timestamp("created_at").defaultNow().notNull(),
 });
 
-// Representatives table
+// Representatives table with Android-converted web features
 export const representatives = pgTable("representatives", {
   id: serial("id").primaryKey(),
   name: text("name").notNull(),
@@ -20,12 +20,27 @@ export const representatives = pgTable("representatives", {
   telegramUsername: text("telegram_username"),
   phone: text("phone"),
   email: text("email"),
-  pricePerGb: decimal("price_per_gb", { precision: 10, scale: 2 }).notNull(),
+  storeName: text("store_name"),
+  
+  // Web-based flexible pricing structure (converted from Android)
+  price1Month: text("price_1_month").notNull().default("50000"),
+  price2Month: text("price_2_month").notNull().default("95000"),
+  price3Month: text("price_3_month").notNull().default("135000"),
+  price4Month: text("price_4_month").notNull().default("170000"),
+  price5Month: text("price_5_month").notNull().default("200000"),
+  price6Month: text("price_6_month").notNull().default("225000"),
+  unlimitedMonthlyPrice: text("unlimited_monthly_price").notNull().default("300000"),
+  
+  // Legacy pricing (kept for backward compatibility)
+  pricePerGb: decimal("price_per_gb", { precision: 10, scale: 2 }).notNull().default("50000"),
   discountPercent: decimal("discount_percent", { precision: 5, scale: 2 }).default("0"),
+  
   parentRepId: integer("parent_rep_id"),
   status: text("status").notNull().default("active"), // active, inactive, suspended
   isSpecialOffer: boolean("is_special_offer").default(false),
   isFreeUser: boolean("is_free_user").default(false),
+  isReferred: boolean("is_referred").default(false),
+  referredBy: text("referred_by"),
   notes: text("notes"),
   createdAt: timestamp("created_at").defaultNow().notNull(),
   updatedAt: timestamp("updated_at").defaultNow().notNull(),
@@ -138,6 +153,15 @@ export const insertRepresentativeSchema = createInsertSchema(representatives).om
   id: true,
   createdAt: true,
   updatedAt: true,
+}).extend({
+  // Make fields optional for better form handling
+  phone: z.string().optional(),
+  email: z.string().email("ایمیل نامعتبر است").optional().or(z.literal("")),
+  telegramId: z.string().optional(),
+  telegramUsername: z.string().optional(),
+  storeName: z.string().optional(),
+  referredBy: z.string().optional(),
+  notes: z.string().optional(),
 });
 
 export const insertInvoiceSchema = createInsertSchema(invoices).omit({
