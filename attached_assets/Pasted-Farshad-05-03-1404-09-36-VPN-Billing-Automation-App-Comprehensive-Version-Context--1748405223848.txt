@@ -1,0 +1,223 @@
+Farshad, [05/03/1404 09:36 ق.ظ]
+VPN Billing Automation App (Comprehensive Version)
+
+
+---
+
+Context & Goal: We aim to develop an Android application for automating billing, accounting, analytics, and representative management within a VPN reseller ecosystem. This app must handle complex data structures from Marzban panel exports, offer deep insights through AI, and provide a Persian interface. It must include encrypted full backup/restore to Google Drive.
+
+
+---
+
+Design Philosophy (Purpose & Role of Each Module): To ensure correct implementation and prevent misinterpretation by AI agents or developers, each module's operational intent and real-world context must be respected. This section outlines the expected user behavior, manual vs automated logic, and operational dependencies of each key component:
+
+1. Excel Import for Invoicing
+
+NOT a static file dependency: The app must never embed or expect hardcoded Excel files. Instead, a user-triggered “Import File” action should open a file picker, allowing dynamic selection of the latest spreadsheet from internal storage or Google Drive.
+
+Operator-Driven Workflow: Invoices are regenerated each month based on fresh data imports. No file = no billing session. Import is explicit and visible.
+
+
+2. Invoice Generator
+
+Batch-oriented generation: After importing, the app identifies representatives by their admin_username and processes each one row-by-row.
+
+Dual output options: Generated invoices are exported both as PDF and image (JPG/PNG) to accommodate various delivery platforms (print, messaging).
+
+Persian-first layout: Invoices are RTL, with labels, prices, dates, and contact fields formatted for Persian users.
+
+
+3. Telegram Integration
+
+Manual messaging strategy: Telegram bots have limitations, so instead, each invoice includes a clickable t.me link for the operator to open and forward manually.
+
+No automatic message delivery: The system is not a bot and doesn't send invoices directly.
+
+Fallback system: Reps without Telegram IDs are shown in a separate “Missing Contact” tab so that the operator can follow up via alternative channels.
+
+
+4. Representative Management
+
+Human-controlled structure: Reps can be added, edited, or removed manually. Each entry includes financial preferences (per GB price, discounts, etc.)
+
+Referral hierarchy: A “parent rep” field allows mapping multi-level marketing paths (e.g., Behnam introduces Ali). This field affects commission and reporting.
+
+Metadata visibility: Status flags (e.g. inactive, free user, special offer) allow operators to filter and act accordingly.
+
+
+5. Accounting & Payment History
+
+Manual payment logging: Operator can record partial or full payments per invoice.
+
+Status-calculating engine: Based on payment vs invoice total, the app classifies reps as Debtor, Creditor, or Balanced.
+
+Ledger-style tracking: Each rep has a historical payment log to audit trends.
+
+
+6. Backup & Cloud Sync
+
+User-initiated backups: Manual backup buttons + scheduled auto-backup once per day.
+
+Encrypted & compressed archives: All backups must be stored as encrypted JSON bundles.
+
+Full recovery flow: After reinstall or migration to new device, the operator must be prompted to restore from Drive (if available).
+
+
+7. AI-Driven Analytics
+
+Decision-support tool: AI analysis offers suggestions—not commands. Trends are flagged for operator insight.
+
+On-device or cloud AI: Depending on available resources, AI modules may use TensorFlow Lite or Firebase Functions.
+
+Visual first: Output should be represented via dashboards, graphs, and heatmaps, not only text.
+
+
+8. Operator Experience
+
+Speed over complexity: One-tap shortcuts, large buttons, and intuitive layout to accommodate fast data entry.
+
+Help is built-in: Persian help popups, tooltips, and inline documentation must be accessible.
+
+Smart notifications: Alerts for unpaid invoices, inactive reps, or unlinked Telegrams ensure no data is lost.
+
+
+
+---
+
+App Structure & UX Flow (Component Map):
+
+1. Splash & Authentication
+
+Welcome screen with logo
+
+App password or biometric login
+
+
+
+2. Main Dashboard (نمای کلی):
+
+Farshad, [05/03/1404 09:36 ق.ظ]
+Total active representatives
+
+Outstanding balances summary
+
+Buttons to navigate to: Invoices / Reps / Accounting / Analytics / Settings
+
+
+
+3. Representative Panel (مدیریت نمایندگان):
+
+List of all reps with summary stats
+
+Add/Edit/Delete buttons
+
+Filter by status: Active / Inactive / No Telegram ID
+
+
+
+4. Invoice Center (مرکز فاکتور):
+
+Dynamic Import button for Google Sheet (trigger file chooser dialog)
+
+Auto-group rows by admin_username
+
+Generate & view invoices
+
+Export options (PDF/Image)
+
+Manual send via Telegram (with link)
+
+Status flags (Sent / Not Sent)
+
+
+
+5. Accounting & Payments:
+
+Table view of reps with unpaid balances
+
+Add payment (manual)
+
+History log per rep
+
+Label reps as Debtor / Creditor
+
+
+
+6. Analytics Center (مرکز تحلیل هوشمند):
+
+Behavior-based segmentation (AI)
+
+Top/bottom rep charts
+
+Monthly trends and predictions
+
+Smart filters
+
+
+
+7. Backup & Recovery:
+
+Auto-backup scheduler (daily / manual)
+
+Google Drive login + sync
+
+Restore backup on new device
+
+
+
+8. Settings & Support:
+
+Currency setting, date format, export path
+
+Persian help pages
+
+Language toggle (optional for bilingual future)
+
+
+
+
+
+---
+
+Core Modules & Functional Requirements:
+
+1. Representative Management Panel:
+
+[...unchanged section...]
+
+2. Invoice Generator Module:
+
+[...unchanged section...]
+
+3. Telegram Integration (Semi-Manual):
+
+[...unchanged section...]
+
+4. Accounting & Payment Tracking:
+
+[...unchanged section...]
+
+5. Data Backup & Recovery:
+
+[...unchanged section...]
+
+6. Smart Analytics (AI-Powered):
+
+[...unchanged section...]
+
+7. Operator-Focused Features:
+
+[...unchanged section...]
+
+
+---
+
+Tech Stack & Implementation Strategy: [...unchanged section...]
+
+
+---
+
+Output Language: Persian (تمامی متون، فاکتورها، منوها و پیام‌ها به زبان فارسی باشد)
+
+
+—-
