@@ -569,10 +569,10 @@ export default function TelegramManager() {
                 <div className="text-xs text-gray-500">
                   <p className="mb-1">متغیرهای موجود:</p>
                   <div className="grid grid-cols-2 gap-1">
-                    <span>{{`{name}`}} - نام نماینده</span>
-                    <span>{{`{username}`}} - نام کاربری</span>
-                    <span>{{`{amount}`}} - مبلغ فاکتور</span>
-                    <span>{{`{month}`}} - ماه فاکتور</span>
+                    <span>name - نام نماینده</span>
+                    <span>username - نام کاربری</span>
+                    <span>amount - مبلغ فاکتور</span>
+                    <span>month - ماه فاکتور</span>
                   </div>
                 </div>
               </div>
