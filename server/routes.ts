@@ -172,6 +172,21 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   });
 
+  app.post("/api/billing-data", async (req, res) => {
+    try {
+      const billingDataArray = req.body;
+      if (!Array.isArray(billingDataArray)) {
+        return res.status(400).json({ error: "Expected array of billing data" });
+      }
+
+      const savedData = await storage.createBillingData(billingDataArray);
+      res.status(201).json(savedData);
+    } catch (error) {
+      console.error("Error creating billing data:", error);
+      res.status(500).json({ error: "Failed to create billing data" });
+    }
+  });
+
   // Settings routes
   app.get("/api/settings/:key", async (req, res) => {
     try {

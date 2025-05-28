@@ -8,6 +8,7 @@ import {
   BarChart3,
   MessageSquare,
   Settings,
+  FileSpreadsheet,
 } from "lucide-react";
 
 const navigationItems = [
@@ -20,6 +21,11 @@ const navigationItems = [
     name: "مدیریت نمایندگان",
     href: "/representatives",
     icon: Users,
+  },
+  {
+    name: "وارد کردن اکسل",
+    href: "/excel-import",
+    icon: FileText,
   },
   {
     name: "مرکز فاکتور",

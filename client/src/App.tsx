@@ -6,6 +6,7 @@ import { TooltipProvider } from "@/components/ui/tooltip";
 import Layout from "@/components/Layout";
 import Dashboard from "@/pages/Dashboard";
 import Representatives from "@/pages/Representatives";
+import ExcelImport from "@/pages/ExcelImport";
 import NotFound from "@/pages/not-found";
 
 function Router() {
@@ -14,6 +15,7 @@ function Router() {
       <Route path="/" component={Dashboard} />
       <Route path="/dashboard" component={Dashboard} />
       <Route path="/representatives" component={Representatives} />
+      <Route path="/excel-import" component={ExcelImport} />
       <Route component={NotFound} />
     </Switch>
   );
