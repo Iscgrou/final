@@ -9,6 +9,7 @@ import Representatives from "@/pages/Representatives";
 import ExcelImport from "@/pages/ExcelImport";
 import TelegramManager from "@/pages/TelegramManager";
 import AccountingDashboard from "@/pages/AccountingDashboard";
+import Analytics from "@/pages/Analytics";
 import NotFound from "@/pages/not-found";
 
 function Router() {
@@ -20,6 +21,7 @@ function Router() {
       <Route path="/excel-import" component={ExcelImport} />
       <Route path="/telegram" component={TelegramManager} />
       <Route path="/accounting" component={AccountingDashboard} />
+      <Route path="/analytics" component={Analytics} />
       <Route component={NotFound} />
     </Switch>
   );
