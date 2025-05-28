@@ -36,6 +36,7 @@ export const representatives = pgTable("representatives", {
   discountPercent: decimal("discount_percent", { precision: 5, scale: 2 }).default("0"),
   
   parentRepId: integer("parent_rep_id"),
+  parentId: integer("parent_id"),
   status: text("status").notNull().default("active"), // active, inactive, suspended
   isSpecialOffer: boolean("is_special_offer").default(false),
   isFreeUser: boolean("is_free_user").default(false),

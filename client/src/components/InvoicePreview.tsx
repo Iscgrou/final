@@ -2,10 +2,21 @@ import { useState } from "react";
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/ui/dialog";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent } from "@/components/ui/card";
+import { Separator } from "@/components/ui/separator";
 import { Badge } from "@/components/ui/badge";
-import { formatCurrency, formatPersianDate, generateInvoiceNumber } from "@/lib/utils";
-import { Download, X, Send, Copy, Share, FileImage, MessageSquare } from "lucide-react";
 import { useToast } from "@/hooks/use-toast";
+import { 
+  X, 
+  Download, 
+  Printer, 
+  Send, 
+  FileText,
+  Calendar,
+  User,
+  DollarSign,
+  Hash
+} from "lucide-react";
+import { formatCurrency, formatPersianDate, generateInvoiceNumber } from "@/lib/utils";
 import html2canvas from "html2canvas";
 import jsPDF from "jspdf";
 
@@ -29,33 +40,37 @@ interface InvoicePreviewProps {
 }
 
 export default function InvoicePreview({ invoice, onClose }: InvoicePreviewProps) {
-  const [isGenerating, setIsGenerating] = useState(false);
+  const [isExporting, setIsExporting] = useState(false);
   const { toast } = useToast();
 
   const invoiceNumber = generateInvoiceNumber(invoice.representativeId, invoice.month);
   const currentDate = new Date();
-  const dueDate = new Date();
-  dueDate.setDate(dueDate.getDate() + 30);
 
-  const generatePDF = async () => {
-    setIsGenerating(true);
+  const exportToPDF = async () => {
+    setIsExporting(true);
     try {
       const element = document.getElementById('invoice-content');
       if (!element) return;
 
       const canvas = await html2canvas(element, {
         scale: 2,
-        backgroundColor: '#ffffff',
         useCORS: true,
+        allowTaint: false,
+        backgroundColor: '#ffffff'
       });
 
       const imgData = canvas.toDataURL('image/png');
-      const pdf = new jsPDF('p', 'mm', 'a4');
-      
+      const pdf = new jsPDF({
+        orientation: 'portrait',
+        unit: 'mm',
+        format: 'a4'
+      });
+
       const imgWidth = 210;
       const pageHeight = 295;
       const imgHeight = (canvas.height * imgWidth) / canvas.width;
       let heightLeft = imgHeight;
+
       let position = 0;
 
       pdf.addImage(imgData, 'PNG', 0, position, imgWidth, imgHeight);
@@ -68,11 +83,11 @@ export default function InvoicePreview({ invoice, onClose }: InvoicePreviewProps
         heightLeft -= pageHeight;
       }
 
-      pdf.save(`فاکتور-${invoiceNumber}.pdf`);
-      
+      pdf.save(`فاکتور-${invoice.representativeName}-${invoice.month}.pdf`);
+
       toast({
         title: "موفقیت",
-        description: "فاکتور PDF با موفقیت دانلود شد",
+        description: "فاکتور با موفقیت دانلود شد",
       });
     } catch (error) {
       toast({
@@ -81,25 +96,25 @@ export default function InvoicePreview({ invoice, onClose }: InvoicePreviewProps
         variant: "destructive",
       });
     } finally {
-      setIsGenerating(false);
+      setIsExporting(false);
     }
   };
 
-  const generateImage = async () => {
-    setIsGenerating(true);
+  const exportToImage = async () => {
+    setIsExporting(true);
     try {
       const element = document.getElementById('invoice-content');
       if (!element) return;
 
       const canvas = await html2canvas(element, {
         scale: 2,
-        backgroundColor: '#ffffff',
         useCORS: true,
+        allowTaint: false,
+        backgroundColor: '#ffffff'
       });
 
-      // Create download link
       const link = document.createElement('a');
-      link.download = `فاکتور-${invoiceNumber}.png`;
+      link.download = `فاکتور-${invoice.representativeName}-${invoice.month}.png`;
       link.href = canvas.toDataURL();
       link.click();
 
@@ -114,71 +129,17 @@ export default function InvoicePreview({ invoice, onClose }: InvoicePreviewProps
         variant: "destructive",
       });
     } finally {
-      setIsGenerating(false);
+      setIsExporting(false);
     }
-  };
-
-  const sendToTelegram = () => {
-    const telegramId = invoice.telegramId || invoice.telegramUsername;
-    if (!telegramId) {
-      toast({
-        title: "خطا",
-        description: "شناسه تلگرام این نماینده ثبت نشده است",
-        variant: "destructive",
-      });
-      return;
-    }
-
-    const message = `سلام ${invoice.representativeName} عزیز 👋
-
-فاکتور ماهانه شما برای دوره ${invoice.month} آماده شده است.
-
-📋 جزئیات فاکتور:
-• شماره فاکتور: ${invoiceNumber}
-• مصرف: ${invoice.dataUsageGb} گیگابایت
-• قیمت هر گیگ: ${formatCurrency(invoice.pricePerGb)} تومان
-${invoice.discountPercent > 0 ? `• تخفیف: ${invoice.discountPercent}%` : ''}
-• مبلغ کل: ${formatCurrency(invoice.totalAmount)} تومان
-• مبلغ نهایی: ${formatCurrency(invoice.finalAmount)} تومان
-• مهلت پرداخت: ${formatPersianDate(dueDate)}
-
-لطفاً در اسرع وقت نسبت به پرداخت اقدام فرمایید.
-
-با تشکر
-سیستم مدیریت VPN`;
-
-    const encodedMessage = encodeURIComponent(message);
-    const telegramLink = `https://t.me/${telegramId.replace('@', '')}?text=${encodedMessage}`;
-    
-    window.open(telegramLink, '_blank');
-    
-    toast({
-      title: "موفقیت",
-      description: "لینک تلگرام باز شد",
-    });
-  };
-
-  const copyInvoiceText = () => {
-    const invoiceText = `فاکتور ${invoiceNumber}
-نماینده: ${invoice.representativeName}
-مصرف: ${invoice.dataUsageGb} گیگابایت
-مبلغ نهایی: ${formatCurrency(invoice.finalAmount)} تومان
-ماه: ${invoice.month}`;
-
-    navigator.clipboard.writeText(invoiceText);
-    toast({
-      title: "موفقیت",
-      description: "اطلاعات فاکتور کپی شد",
-    });
   };
 
   return (
-    <Dialog open onOpenChange={onClose}>
+    <Dialog open={true} onOpenChange={onClose}>
       <DialogContent className="max-w-4xl max-h-[95vh] overflow-y-auto">
         <DialogHeader>
           <div className="flex items-center justify-between">
             <DialogTitle className="flex items-center">
-              <FileImage className="w-5 h-5 ml-2" />
+              <FileText className="w-5 h-5 ml-2" />
               پیش‌نمایش فاکتور
             </DialogTitle>
             <Button variant="ghost" size="sm" onClick={onClose}>
@@ -187,160 +148,159 @@ ${invoice.discountPercent > 0 ? `• تخفیف: ${invoice.discountPercent}%` : 
           </div>
         </DialogHeader>
 
-        {/* Invoice Content */}
-        <div id="invoice-content" className="bg-white p-8 rounded-lg shadow-lg" dir="rtl">
-          {/* Header */}
-          <div className="text-center mb-8 border-b-2 border-primary pb-6">
-            <h1 className="text-3xl font-bold text-primary mb-2">فاکتور فروش</h1>
-            <h2 className="text-xl text-gray-600">سیستم مدیریت VPN</h2>
-            <div className="mt-4 grid grid-cols-2 gap-4 text-sm">
-              <div className="text-right">
-                <p><strong>شماره فاکتور:</strong> {invoiceNumber}</p>
-                <p><strong>تاریخ صدور:</strong> {formatPersianDate(currentDate)}</p>
-              </div>
-              <div className="text-left">
-                <p><strong>مهلت پرداخت:</strong> {formatPersianDate(dueDate)}</p>
-                <p><strong>دوره:</strong> {invoice.month}</p>
-              </div>
-            </div>
+        <div className="space-y-6">
+          {/* Action Buttons */}
+          <div className="flex justify-end space-x-3 space-x-reverse">
+            <Button
+              variant="outline"
+              onClick={exportToImage}
+              disabled={isExporting}
+            >
+              <Download className="w-4 h-4 ml-2" />
+              دانلود تصویر
+            </Button>
+            <Button
+              onClick={exportToPDF}
+              disabled={isExporting}
+              className="bg-primary text-white hover:bg-primary/90"
+            >
+              {isExporting ? (
+                <>
+                  <div className="w-4 h-4 border-2 border-white border-t-transparent rounded-full animate-spin ml-2" />
+                  در حال تولید...
+                </>
+              ) : (
+                <>
+                  <Download className="w-4 h-4 ml-2" />
+                  دانلود PDF
+                </>
+              )}
+            </Button>
           </div>
 
-          {/* Customer Info */}
-          <div className="mb-8">
-            <h3 className="text-lg font-bold mb-4 text-primary">اطلاعات نماینده:</h3>
-            <div className="bg-gray-50 p-4 rounded-lg">
-              <div className="grid grid-cols-2 gap-4">
-                <div>
-                  <p><strong>نام:</strong> {invoice.representativeName}</p>
-                  <p><strong>نام کاربری:</strong> @{invoice.username}</p>
+          {/* Invoice Content */}
+          <Card 
+            id="invoice-content" 
+            className="border-2 border-gray-200 bg-white"
+            style={{ fontFamily: 'Vazir, Arial, sans-serif', direction: 'rtl' }}
+          >
+            <CardContent className="p-8">
+              {/* Header */}
+              <div className="text-center mb-8">
+                <h1 className="text-3xl font-bold text-gray-900 mb-2">فاکتور خدمات VPN</h1>
+                <div className="flex justify-between items-center mt-6">
+                  <div className="text-right">
+                    <p className="text-sm text-gray-600">شماره فاکتور:</p>
+                    <p className="font-bold text-lg">{invoiceNumber}</p>
+                  </div>
+                  <div className="text-left">
+                    <p className="text-sm text-gray-600">تاریخ صدور:</p>
+                    <p className="font-bold text-lg">{formatPersianDate(currentDate)}</p>
+                  </div>
                 </div>
-                <div>
-                  <p><strong>شناسه نماینده:</strong> {invoice.representativeId}</p>
-                  {(invoice.telegramId || invoice.telegramUsername) && (
-                    <p><strong>تلگرام:</strong> {invoice.telegramId || invoice.telegramUsername}</p>
-                  )}
-                </div>
               </div>
-            </div>
-          </div>
 
-          {/* Invoice Details */}
-          <div className="mb-8">
-            <h3 className="text-lg font-bold mb-4 text-primary">جزئیات فاکتور:</h3>
-            <div className="overflow-x-auto">
-              <table className="w-full border-collapse border border-gray-300">
-                <thead>
-                  <tr className="bg-primary text-white">
-                    <th className="border border-gray-300 p-3 text-right">شرح</th>
-                    <th className="border border-gray-300 p-3 text-center">مقدار</th>
-                    <th className="border border-gray-300 p-3 text-center">قیمت واحد</th>
-                    <th className="border border-gray-300 p-3 text-center">مبلغ کل</th>
-                  </tr>
-                </thead>
-                <tbody>
-                  <tr>
-                    <td className="border border-gray-300 p-3">مصرف داده VPN</td>
-                    <td className="border border-gray-300 p-3 text-center">{invoice.dataUsageGb} گیگابایت</td>
-                    <td className="border border-gray-300 p-3 text-center">{formatCurrency(invoice.pricePerGb)} تومان</td>
-                    <td className="border border-gray-300 p-3 text-center">{formatCurrency(invoice.totalAmount)} تومان</td>
-                  </tr>
-                </tbody>
-              </table>
-            </div>
-          </div>
+              <Separator className="mb-6" />
 
-          {/* Summary */}
-          <div className="mb-8">
-            <div className="flex justify-end">
-              <div className="w-80">
-                <div className="bg-gray-50 p-4 rounded-lg">
+              {/* Customer Info */}
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-6 mb-8">
+                <div className="space-y-3">
+                  <h3 className="text-lg font-bold text-gray-900 flex items-center">
+                    <User className="w-5 h-5 ml-2" />
+                    اطلاعات مشتری
+                  </h3>
                   <div className="space-y-2">
                     <div className="flex justify-between">
-                      <span>مبلغ کل:</span>
-                      <span>{formatCurrency(invoice.totalAmount)} تومان</span>
+                      <span className="text-gray-600">نام:</span>
+                      <span className="font-medium">{invoice.representativeName}</span>
                     </div>
-                    {invoice.discountPercent > 0 && (
-                      <div className="flex justify-between text-green-600">
-                        <span>تخفیف ({invoice.discountPercent}%):</span>
-                        <span>-{formatCurrency(invoice.totalAmount - invoice.finalAmount)} تومان</span>
+                    <div className="flex justify-between">
+                      <span className="text-gray-600">نام کاربری:</span>
+                      <span className="font-medium">{invoice.username}</span>
+                    </div>
+                    {invoice.telegramUsername && (
+                      <div className="flex justify-between">
+                        <span className="text-gray-600">تلگرام:</span>
+                        <span className="font-medium">{invoice.telegramUsername}</span>
                       </div>
                     )}
-                    <hr className="border-gray-300" />
-                    <div className="flex justify-between font-bold text-lg text-primary">
-                      <span>مبلغ قابل پرداخت:</span>
-                      <span>{formatCurrency(invoice.finalAmount)} تومان</span>
+                  </div>
+                </div>
+
+                <div className="space-y-3">
+                  <h3 className="text-lg font-bold text-gray-900 flex items-center">
+                    <Calendar className="w-5 h-5 ml-2" />
+                    دوره خدمات
+                  </h3>
+                  <div className="space-y-2">
+                    <div className="flex justify-between">
+                      <span className="text-gray-600">ماه:</span>
+                      <span className="font-medium">{invoice.month}</span>
+                    </div>
+                    <div className="flex justify-between">
+                      <span className="text-gray-600">مصرف داده:</span>
+                      <span className="font-medium">{invoice.dataUsageGb} گیگابایت</span>
                     </div>
                   </div>
                 </div>
               </div>
-            </div>
-          </div>
 
-          {/* Footer */}
-          <div className="text-center text-sm text-gray-600 border-t pt-4">
-            <p>لطفاً مبلغ فوق را تا تاریخ سررسید پرداخت نمایید.</p>
-            <p>در صورت داشتن سوال با بخش پشتیبانی تماس بگیرید.</p>
-            <p className="mt-4 font-medium">با تشکر از همکاری شما</p>
-          </div>
+              <Separator className="mb-6" />
+
+              {/* Services Table */}
+              <div className="mb-8">
+                <h3 className="text-lg font-bold text-gray-900 mb-4 flex items-center">
+                  <DollarSign className="w-5 h-5 ml-2" />
+                  جزئیات محاسبات
+                </h3>
+                <div className="bg-gray-50 rounded-lg p-4">
+                  <div className="grid grid-cols-4 gap-4 font-bold text-gray-900 mb-3 pb-2 border-b border-gray-300">
+                    <div>خدمات</div>
+                    <div className="text-center">مقدار</div>
+                    <div className="text-center">نرخ (تومان)</div>
+                    <div className="text-left">مبلغ (تومان)</div>
+                  </div>
+                  
+                  <div className="grid grid-cols-4 gap-4 py-2">
+                    <div>سرویس VPN</div>
+                    <div className="text-center">{invoice.dataUsageGb} GB</div>
+                    <div className="text-center">{formatCurrency(invoice.pricePerGb)}</div>
+                    <div className="text-left font-medium">{formatCurrency(invoice.totalAmount)}</div>
+                  </div>
+
+                  {invoice.discountPercent > 0 && (
+                    <div className="grid grid-cols-4 gap-4 py-2 text-green-600">
+                      <div>تخفیف</div>
+                      <div className="text-center">%{invoice.discountPercent}</div>
+                      <div className="text-center">-</div>
+                      <div className="text-left font-medium">
+                        -{formatCurrency(invoice.totalAmount - invoice.finalAmount)}
+                      </div>
+                    </div>
+                  )}
+                </div>
+              </div>
+
+              <Separator className="mb-6" />
+
+              {/* Total */}
+              <div className="text-left mb-8">
+                <div className="bg-primary/10 rounded-lg p-4 inline-block">
+                  <div className="text-lg font-bold text-gray-900 mb-2">مبلغ قابل پرداخت:</div>
+                  <div className="text-3xl font-bold text-primary">
+                    {formatCurrency(invoice.finalAmount)} تومان
+                  </div>
+                </div>
+              </div>
+
+              {/* Footer */}
+              <div className="text-center text-sm text-gray-600 border-t border-gray-200 pt-4">
+                <p>این فاکتور به صورت الکترونیکی تولید شده و نیازی به مهر و امضا ندارد.</p>
+                <p className="mt-1">با تشکر از انتخاب خدمات ما</p>
+              </div>
+            </CardContent>
+          </Card>
         </div>
-
-        {/* Action Buttons */}
-        <div className="flex justify-between items-center pt-6 border-t border-gray-200">
-          <div className="flex items-center space-x-2 space-x-reverse">
-            <Badge variant={invoice.telegramId || invoice.telegramUsername ? "default" : "destructive"}>
-              {invoice.telegramId || invoice.telegramUsername ? "تلگرام متصل" : "بدون تلگرام"}
-            </Badge>
-          </div>
-
-          <div className="flex items-center space-x-2 space-x-reverse">
-            <Button variant="outline" onClick={copyInvoiceText}>
-              <Copy className="w-4 h-4 ml-2" />
-              کپی
-            </Button>
-
-            <Button variant="outline" onClick={generateImage} disabled={isGenerating}>
-              <FileImage className="w-4 h-4 ml-2" />
-              تصویر
-            </Button>
-
-            <Button variant="outline" onClick={generatePDF} disabled={isGenerating}>
-              <Download className="w-4 h-4 ml-2" />
-              PDF
-            </Button>
-
-            {(invoice.telegramId || invoice.telegramUsername) && (
-              <Button onClick={sendToTelegram} className="bg-blue-500 text-white hover:bg-blue-600">
-                <MessageSquare className="w-4 h-4 ml-2" />
-                ارسال در تلگرام
-              </Button>
-            )}
-          </div>
-        </div>
-
-        {/* Android-Style Features */}
-        <div className="mt-4 p-4 bg-blue-50 rounded-lg border border-blue-200">
-          <div className="flex items-start">
-            <Share className="w-5 h-5 text-blue-600 mt-0.5 ml-2" />
-            <div className="text-sm text-blue-800">
-              <p className="font-medium mb-2">ویژگی‌های اندروید:</p>
-              <ul className="list-disc list-inside space-y-1">
-                <li>دانلود فاکتور به صورت PDF و تصویر</li>
-                <li>ارسال مستقیم در تلگرام با پیام از پیش تنظیم شده</li>
-                <li>کپی سریع اطلاعات فاکتور</li>
-                <li>طراحی بهینه برای نمایش موبایل</li>
-              </ul>
-            </div>
-          </div>
-        </div>
-
-        {isGenerating && (
-          <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50">
-            <div className="bg-white p-6 rounded-lg flex items-center space-x-4 space-x-reverse">
-              <div className="w-6 h-6 border-2 border-primary border-t-transparent rounded-full animate-spin"></div>
-              <span>در حال تولید فاکتور...</span>
-            </div>
-          </div>
-        )}
       </DialogContent>
     </Dialog>
   );
