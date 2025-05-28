@@ -94,13 +94,14 @@ export default function ExcelImport() {
     const validTypes = [
       'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet',
       'application/vnd.ms-excel',
+      'application/vnd.oasis.opendocument.spreadsheet',
       'text/csv'
     ];
 
-    if (!validTypes.includes(selectedFile.type) && !selectedFile.name.match(/\.(xlsx|xls|csv)$/i)) {
+    if (!validTypes.includes(selectedFile.type) && !selectedFile.name.match(/\.(xlsx|xls|ods|csv)$/i)) {
       toast({
         title: "خطا",
-        description: "فقط فایل‌های Excel (xlsx, xls) یا CSV پشتیبانی می‌شوند",
+        description: "فقط فایل‌های Excel (xlsx, xls)، LibreOffice (ods) یا CSV پشتیبانی می‌شوند",
         variant: "destructive",
       });
       return;
@@ -282,7 +283,7 @@ export default function ExcelImport() {
                 <input
                   ref={fileInputRef}
                   type="file"
-                  accept=".xlsx,.xls,.csv"
+                  accept=".xlsx,.xls,.ods,.csv"
                   onChange={handleFileSelect}
                   className="hidden"
                 />

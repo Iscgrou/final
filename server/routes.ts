@@ -113,6 +113,50 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   });
 
+  app.post("/api/invoices/generate-batch", async (req, res) => {
+    try {
+      const { invoices } = req.body;
+      if (!Array.isArray(invoices)) {
+        return res.status(400).json({ error: "Expected array of invoices" });
+      }
+
+      const createdInvoices = [];
+      for (const invoiceData of invoices) {
+        // Create the invoice
+        const invoice = await storage.createInvoice({
+          representativeId: invoiceData.representativeId,
+          invoiceNumber: invoiceData.invoiceNumber,
+          month: invoiceData.month,
+          totalAmount: invoiceData.totalAmount,
+          discountAmount: invoiceData.discountAmount || "0",
+          finalAmount: invoiceData.finalAmount,
+          dueDate: new Date(invoiceData.dueDate),
+          status: invoiceData.status || "pending",
+        });
+
+        // Create invoice items
+        if (invoiceData.items && Array.isArray(invoiceData.items)) {
+          for (const item of invoiceData.items) {
+            await storage.createInvoiceItem({
+              invoiceId: invoice.id,
+              description: item.description,
+              quantity: item.quantity,
+              unitPrice: item.unitPrice,
+              totalPrice: item.totalPrice,
+            });
+          }
+        }
+
+        createdInvoices.push(invoice);
+      }
+
+      res.status(201).json(createdInvoices);
+    } catch (error) {
+      console.error("Error generating batch invoices:", error);
+      res.status(500).json({ error: "Failed to generate invoices" });
+    }
+  });
+
   app.get("/api/invoices/representative/:repId", async (req, res) => {
     try {
       const repId = parseInt(req.params.repId);
