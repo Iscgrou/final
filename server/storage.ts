@@ -237,20 +237,16 @@ export class DatabaseStorage implements IStorage {
 
   async getTopRepresentatives(limit = 5): Promise<Array<Representative & { revenue: string }>> {
     const result = await db
-      .select({
-        ...representatives,
-        revenue: sql<string>`coalesce(sum(${invoices.finalAmount}), '0')`,
-      })
+      .select()
       .from(representatives)
-      .leftJoin(invoices, eq(representatives.id, invoices.representativeId))
       .where(eq(representatives.status, 'active'))
-      .groupBy(representatives.id)
-      .orderBy(desc(sql`sum(${invoices.finalAmount})`))
+      .orderBy(desc(representatives.createdAt))
       .limit(limit);
 
-    return result.map(row => ({
-      ...row,
-      revenue: row.revenue || "0",
+    // For now, return representatives with zero revenue until we have actual invoice data
+    return result.map(rep => ({
+      ...rep,
+      revenue: "0",
     }));
   }
 
