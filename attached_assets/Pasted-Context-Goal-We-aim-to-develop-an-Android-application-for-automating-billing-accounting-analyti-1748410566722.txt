@@ -1,0 +1,216 @@
+Context & Goal: We aim to develop an Android application for automating billing, accounting, analytics, and representative management within a VPN reseller ecosystem. This app must handle complex data structures from Marzban panel exports, offer deep insights through AI, and provide a Persian interface. It must include encrypted full backup/restore to Google Drive.
+
+
+---
+
+Design Philosophy (Purpose & Role of Each Module): To ensure correct implementation and prevent misinterpretation by AI agents or developers, each module's operational intent and real-world context must be respected. This section outlines the expected user behavior, manual vs automated logic, and operational dependencies of each key component:
+
+1. Excel Import for Invoicing
+
+The app must never embed or rely on a static Excel/ODS file. Instead, a user-triggered "Import File" action opens a file picker.
+
+Supported file type: .ods (OpenDocument Spreadsheet).
+
+Each row in the file corresponds to one representative. Data is parsed row-by-row.
+
+The number of rows may increase weekly as new reps join. The system must dynamically iterate until two consecutive empty rows are encountered.
+
+The key identifier for matching each row to a representative is admin_username (Column A).
+
+If a representative has no generated usernames for that week, the related column(s) will contain the string value "null". In that case, skip invoice generation but retain the entry in logs.
+
+After matching, the app dynamically calculates invoice amounts using the representative’s registered pricing structure (see below).
+
+
+2. Invoice Calculation Logic
+
+The pricing structure per representative includes:
+
+Price per GB for limited plans (1 to 6 months individually configurable)
+
+Monthly price for unlimited plans
+
+Unlimited invoices must be calculated as: monthly_price × number_of_months
+
+These pricing details are manually entered in the Representative Panel and linked to admin_username
+
+
+Upon import, the app scans each row, calculates total for limited and unlimited usage using the mapped prices, and generates a per-representative invoice.
+
+
+3. Representative Form: Manual Data Entry
+
+Each representative’s profile includes the following fields:
+
+Full Name
+
+Telegram ID (for link-based invoice delivery)
+
+Phone Number
+
+Store Name (optional)
+
+Admin Username (Marzban panel reference)
+
+Price per GB for:
+
+1-month limited
+
+2-month limited
+
+3-month limited
+
+4-month limited
+
+5-month limited
+
+6-month limited
+
+
+Price per month for unlimited access
+
+Status metadata (e.g., referred by another rep, active/unpaid, etc.)
+
+
+
+---
+
+App Structure & UX Flow (Component Map):
+
+1. Splash & Authentication
+
+
+2. Main Dashboard
+
+
+3. Representative Panel
+
+
+4. Customer Details View
+
+
+5. Invoice Center
+
+
+6. Invoice Details View
+
+
+7. Accounting Overview
+
+
+8. Add Manual Payment
+
+
+9. Smart Analytics
+
+
+10. Settings & Backup
+
+
+
+
+---
+
+Core Modules & Functional Requirements:
+
+1. Representative Management Panel:
+
+View, add, edit, or remove representatives.
+
+Search and filter reps by activity status or missing Telegram info.
+
+Fields include full identity, pricing configuration, and parent referral.
+
+
+2. Invoice Generator Module:
+
+Upload .ods sheet from file manager.
+
+Match each row using admin_username.
+
+Dynamically generate invoice with total usage and price.
+
+Export PDF and image versions of each invoice.
+
+
+3. Telegram Integration (Semi-Manual):
+
+Each invoice includes a clickable t.me deep-link.
+
+Invoices are sent manually by operator.
+
+Group reps with missing Telegram links separately.
+
+
+4. Accounting & Payment Tracking:
+
+View outstanding balances by rep.
+
+Mark payments as partial or full.
+
+Keep historical logs of all transactions.
+
+Tag reps as debtor, creditor, or balanced.
+
+
+5. Data Backup & Recovery:
+
+Daily and on-demand encrypted backup to Google Drive.
+
+Store all rep data, invoices, and accounting info.
+
+Allow restoration after reinstall or migration.
+
+
+6. Smart Analytics (AI-Powered):
+
+Analyze behavior and usage patterns.
+
+Segment users by activity and status.
+
+Predict late payments.
+
+Visual dashboards with trends and KPIs.
+
+
+7. Operator-Focused Features:
+
+Persian help and tooltips.
+
+Fast input workflows.
+
+Alerts for unpaid reps or missing data.
+
+Simple and intuitive UI.
+
+
+
+---
+
+Tech Stack & Implementation Strategy:
+
+Language: Kotlin
+
+UI: Jetpack Compose + Material 3 (RTL)
+
+Architecture: MVVM modular
+
+Local Storage: Room DB with SQLCipher
+
+Excel Parser: Apache POI / ODF Toolkit
+
+PDF/Image Export: iText or Android Canvas
+
+AI Layer: TensorFlow Lite or Firebase Functions
+
+Cloud Backup: Google Drive API (OAuth2)
+
+IDE: Android Studio Flamingo+
+
+Build: Gradle 8.2+, with ProGuard and encrypted keys
+
+
+
+---
+
+Output Language: Persian (تمامی متون، فاکتورها، منوها و پیام‌ها به زبان فارسی باشد)
